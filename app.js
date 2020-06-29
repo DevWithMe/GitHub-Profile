@@ -45,5 +45,76 @@ function displayInfo() {
 
     });
 
-    
+    fetch(`https://api.github.com/users/${username}/repos`)
+    .then(response => response.json())
+    .then(data => {
+        var repoLangs = [];
+        var repoLangsCount = {};
+
+        if (data["message"] === "Not Found") {
+            document.getElementById("main").innerHTML = "<h1>No such user</h1>"
+        }
+
+        for (let i in data) {
+            var repoInfo = ""
+            var LI = document.createElement("LI");
+
+            if (data[i]["language"] === null) var lang = "other"
+            else var lang = data[i]["language"]
+
+            if (data[i]["fork"] === true) repoInfo += `<span class="fork">${data[i]["name"]} - ${lang} + (forked)</span>`
+            else repoInfo += `<span>${data[i]["name"]} - ${lang} + </span>`
+
+            if (data[i]["language"] === null) repoLangs.push("other");
+            else repoLangs.push(data[i]["language"]);
+
+            if (data[i]["language"] === null) var lang = null;
+            else var lang = data[i]["language"];
+
+            if (lang === null && repoLangsCount["other"] === undefined) repoLangsCount["other"] = 1
+            else if (lang === null) repoLangsCount["other"]++;
+            else if (lang !== null && repoLangsCount[lang] === undefined) repoLangsCount[lang] = 1
+            else repoLangsCount[lang]++;
+
+            if (repoInfo.includes("fork")) LI.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill-rule="evenodd" d="M5 3.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm0 2.122a2.25 2.25 0 10-1.5 0v.878A2.25 2.25 0 005.75 8.5h1.5v2.128a2.251 2.251 0 101.5 0V8.5h1.5a2.25 2.25 0 002.25-2.25v-.878a2.25 2.25 0 10-1.5 0v.878a.75.75 0 01-.75.75h-4.5A.75.75 0 015 6.25v-.878zm3.75 7.378a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm3-8.75a.75.75 0 100-1.5.75.75 0 000 1.5z"></path></svg>${repoInfo}`
+            else LI.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16"><path fill-rule="evenodd" d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg>${repoInfo}`
+
+            document.getElementById("main").appendChild(LI);
+        }
+
+        var colorArr = [];
+        for (let i=0; i<Object.keys(repoLangsCount).length; i++) {
+            try {
+                var string = `rgba(${hexToRgb(colors[Object.keys(repoLangsCount)[i]]).r}, ${hexToRgb(colors[Object.keys(repoLangsCount)[i]]).g}, ${hexToRgb(colors[Object.keys(repoLangsCount)[i]]).b}, 5)`
+            } catch (err) {
+                var string = `rgba(100, 100, 100, 5)`
+            }
+            colorArr.push(string);
+        };
+
+        var ctx = document.getElementById("chart").getContext('2d');
+        var myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: repoLangs.filter(unique),
+                datasets: [{
+                    label: '# of Repo based on Language',
+                    data: Object.values(repoLangsCount),
+                    backgroundColor: colorArr,
+                    borderColor: colorArr,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: false,
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+    })
 }
