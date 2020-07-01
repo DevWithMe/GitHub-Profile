@@ -6,6 +6,19 @@
     text-align: center;
 }
 
-/* #result {
+#result {
     display: none;
-} */
+}
+
+.fork {
+    color: gray;
+}
+
+#main {
+    column-count: 5;
+}
+
+#title {
+    text-align: center;
+}
+
